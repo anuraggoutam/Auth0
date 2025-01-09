@@ -22,7 +22,7 @@ const UsersList = () => {
             return <li key={i}>{user.name}</li>;
           })}
         </ul>
-        <Link to="/welcome">Back to Welcome</Link>
+        <Link to="/">Back to Welcome</Link>
       </section>
     );
   } else if (isError) {
