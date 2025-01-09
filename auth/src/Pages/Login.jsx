@@ -1,17 +1,20 @@
 import { useRef, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "./authSlice";
-import { useLoginMutation } from "./authApiSlice";
+import { setCredentials } from "../features/auth/authSlice";
+import { useLoginMutation } from "../features/auth/authApiSlice";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || "/";
+
   const userRef = useRef();
   const errRef = useRef();
+
   const [user, setUser] = useState("");
   const [pwd, setPwd] = useState("");
   const [errMsg, setErrMsg] = useState("");
-  const navigate = useNavigate();
-
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useDispatch();
 
@@ -27,18 +30,19 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const userData = await login({ user, pwd }).unwrap();
-      dispatch(setCredentials({ ...userData, user }));
+      const response = await login({ user, pwd }).unwrap();
+
+      dispatch(setCredentials({ ...response, user }));
       setUser("");
       setPwd("");
-      navigate("/welcome");
+      console.log("Navigating to:", from); // Debugging statement
+      navigate(from, { replace: true });
     } catch (err) {
-      if (!err?.originalStatus) {
-        // isLoading: true until timeout occurs
+      if (!err?.response) {
         setErrMsg("No Server Response");
-      } else if (err.originalStatus === 400) {
+      } else if (err.response?.status === 400) {
         setErrMsg("Missing Username or Password");
-      } else if (err.originalStatus === 401) {
+      } else if (err.response?.status === 401) {
         setErrMsg("Unauthorized");
       } else {
         setErrMsg("Login Failed");
@@ -46,15 +50,10 @@ const Login = () => {
       errRef.current.focus();
     }
   };
-
-  const handleUserInput = (e) => setUser(e.target.value);
-
-  const handlePwdInput = (e) => setPwd(e.target.value);
-
   const content = isLoading ? (
     <h1>Loading...</h1>
   ) : (
-    <section className="login">
+    <section>
       <p
         ref={errRef}
         className={errMsg ? "errmsg" : "offscreen"}
@@ -62,18 +61,16 @@ const Login = () => {
       >
         {errMsg}
       </p>
-
-      <h1>Employee Login</h1>
-
+      <h1>Sign In</h1>
       <form onSubmit={handleSubmit}>
         <label htmlFor="username">Username:</label>
         <input
           type="text"
           id="username"
           ref={userRef}
-          value={user}
-          onChange={handleUserInput}
           autoComplete="off"
+          onChange={(e) => setUser(e.target.value)}
+          value={user}
           required
         />
 
@@ -81,15 +78,22 @@ const Login = () => {
         <input
           type="password"
           id="password"
-          onChange={handlePwdInput}
+          onChange={(e) => setPwd(e.target.value)}
           value={pwd}
           required
         />
         <button>Sign In</button>
       </form>
+      <p>
+        Need an Account?
+        <br />
+        <span className="line">
+          <Link to="/register">Sign Up</Link>
+        </span>
+      </p>
     </section>
   );
-
   return content;
 };
+
 export default Login;
