@@ -1,15 +1,24 @@
 import { useNavigate, Link } from "react-router-dom";
-import { logOut } from "../features/auth/authSlice";
-import { useDispatch } from "react-redux";
+import { useSendLogoutMutation } from "../features/auth/authApiSlice";
+
 const Home = () => {
+  const [sendLogout] = useSendLogoutMutation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const logout = async () => {
     // if used in more components, this should be in context
     // axios to /logout endpoint
-    dispatch(logOut());
-    navigate("/linkpage");
+    try {
+      await sendLogout().unwrap();
+
+      navigate("/linkpage");
+    } catch (error) {
+      if (error.originalStatus === 404) {
+        console.error("Endpoint not found. Verify the backend route.");
+      } else {
+        console.error("Error logging out:", error);
+      }
+    }
   };
 
   return (

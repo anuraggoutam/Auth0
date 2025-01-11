@@ -10,8 +10,8 @@ import Lounge from "./Pages/Lounge";
 import LinkPage from "./Pages/LinkPage";
 import RequireAuth from "./utils/RequireAuth";
 import { Routes, Route } from "react-router-dom";
-import PersistLogin from "./utils/PersistLogin";
 import UsersList from "./features/users/UsersList";
+import PersistLogin from "./utils/PersistLogin";
 const ROLES = {
   User: 2001,
   Editor: 1984,
@@ -25,11 +25,13 @@ function App() {
         {/* public routes */}
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+
         <Route path="linkpage" element={<LinkPage />} />
         <Route path="unauthorized" element={<Unauthorized />} />
 
         {/* we want to protect these routes */}
         <Route element={<PersistLogin />}>
+          <Route path="/" element={<Home />} />
           <Route element={<RequireAuth allowedRoles={[ROLES.User]} />}>
             <Route path="/" element={<Home />} />
           </Route>
@@ -48,9 +50,10 @@ function App() {
             <Route path="users" element={<UsersList />} />
             <Route path="lounge" element={<Lounge />} />
           </Route>
+
+          {/* catch all */}
+          <Route path="*" element={<Missing />} />
         </Route>
-        {/* catch all */}
-        <Route path="*" element={<Missing />} />
       </Route>
     </Routes>
   );
